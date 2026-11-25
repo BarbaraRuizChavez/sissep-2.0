@@ -1,0 +1,31 @@
+import { Router }    from 'express';
+import authRoutes    from './auth.routes';
+import documentRoutes from './document.routes';
+import { Router as ExpressRouter } from 'express';
+import { authenticate, authorize } from '../middlewares/auth.middleware';
+import * as Management from '../controllers/management.controller';
+
+const router = Router();
+router.use('/auth',      authRoutes);
+router.use('/documents', documentRoutes);
+const admin = ExpressRouter();
+admin.get('/required-documents', Management.listRequiredDocs);
+admin.get('/document-catalog', authenticate, authorize('encargado'), Management.listDocumentCatalog);
+admin.post('/document-catalog', authenticate, authorize('encargado'), Management.addCatalogDocument);
+admin.patch('/document-catalog/:category', authenticate, authorize('encargado'), Management.updateCatalogDocument);
+admin.delete('/document-catalog/:category', authenticate, authorize('encargado'), Management.deactivateCatalogDocument);
+admin.get('/current-period', authenticate, Management.currentStudentPeriod);
+admin.post('/deliveries', authenticate, authorize('encargado'), Management.saveDelivery);
+admin.patch('/deliveries/:deliveryName', authenticate, authorize('encargado'), Management.saveDelivery);
+admin.post('/required-documents', authenticate, authorize('encargado'), Management.saveRequiredDoc);
+admin.patch('/required-documents/stage-deadline', authenticate, authorize('encargado'), Management.saveStageDeadline);
+admin.patch('/required-documents/:id', authenticate, authorize('encargado'), Management.saveRequiredDoc);
+admin.delete('/required-documents/:id', authenticate, authorize('encargado'), Management.deactivateRequiredDoc);
+admin.get('/periods', authenticate, authorize('encargado'), Management.listPeriods);
+admin.post('/periods', authenticate, authorize('encargado'), Management.createPeriod);
+admin.patch('/periods/:id', authenticate, authorize('encargado'), Management.updatePeriod);
+admin.delete('/periods/:id', authenticate, authorize('encargado'), Management.deactivatePeriod);
+admin.get('/periods/:id/history', authenticate, authorize('encargado'), Management.periodHistory);
+router.use('/admin', admin);
+
+export default router;
